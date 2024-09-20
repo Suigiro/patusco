@@ -1,0 +1,46 @@
+version: "3"
+services:
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports: 
+      - "8081:80"
+    networks:
+      - internal
+    volumes:
+      - ./backend/:/var/www/html/
+      - ./logs/nginx:/var/log/nginx/
+    container_name: nginx
+  php:
+    build:
+      context: .
+      dockerfile: php/Dockerfile
+    networks:
+      - internal
+    volumes:
+      - ./backend/:/var/www/html/
+      - ./logs/php.log:/var/log/fpm-php.www.log
+    container_name: php
+    expose:
+      - "9000"
+  mysql:
+    container_name: db
+    restart: always
+    image: mariadb:latest
+    platform: linux/x86_64
+    ports:
+     - "3309:3306"
+    environment:
+      MYSQL_DATABASE: veterinario
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: vet@root
+      MYSQL_USER: vetUser
+      MYSQL_PASS: vet@pass
+    volumes:
+      - ./db-data:/var/lib/mysql
+    networks:
+      - internal
+networks:
+  internal:
+    driver: bridge
